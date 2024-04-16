@@ -1,30 +1,35 @@
 form {
-    width:100%;
+    width: 100%;
     text-align: center;
 }
 
-input, audio{
-    width: 25em;
+input, select, audio {
+    width: 25em; /* Uniform width for input and audio controls */
     margin: 2em 0;
 }
 
-#interval {
-    width: 10em;
-}
-
-#recorder {
+#filename, #submit, #summarize {
     font-size: 1em;
-    width: 20em;
+    width: 20em; /* Slightly narrower controls for aesthetic spacing */
 }
 
-#submit {
-    border-radius: 3em;
+#submit, #summarize {
+    border-radius: 3em; /* Rounded buttons for better aesthetics */
     height: 5em;
 }
 
 p {
     font-size: 1.5em;
-    white-space: pre-line;
+    white-space: pre-line; /* Ensures that spaces and line breaks are preserved in the output text */
 }
 
+.spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
 
+#summaryContainer {
+    margin-top: 1em;
+    font-size: 1.2em;
+    color: #555; /* Muted text color for the summary output */
+}

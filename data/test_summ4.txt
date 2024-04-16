@@ -1,0 +1,17 @@
+Un réseau de neurones récurrents (RNN pour recurrent neural network en anglais) est un réseau de neurones artificiels présentant des connexions récurrentes. Un réseau de neurones récurrents est constitué d'unités (neurones) interconnectées interagissant non-linéairement et pour lequel il existe au moins un cycle dans la structure. Les unités sont reliées par des arcs (synapses) qui possèdent un poids. La sortie d'un neurone est une combinaison non linéaire de ses entrées.
+
+Les réseaux de neurones récurrents sont adaptés pour des données d'entrée de taille variable. Ils conviennent en particulier pour l'analyse de séries temporelles1. Ils sont utilisés en reconnaissance automatique de la parole ou de l'écriture manuscrite - plus généralement en reconnaissance de formes - ou encore en traduction automatique. Dépliés, ils sont comparables à des réseaux de neurones classiques avec des contraintes d'égalité entre les poids du réseau (voir schéma à droite). Les techniques d'entraînement du réseau sont les mêmes que pour les réseaux classiques (rétropropagation du gradient), néanmoins les réseaux de neurones récurrents se heurtent au problème de disparition du gradient pour apprendre à mémoriser des évènements passés. Des architectures particulières répondent à ce dernier problème, on peut citer en particulier les réseaux Long short-term memory. On peut étudier les comportements des réseaux de neurones récurrents avec la théorie des bifurcations, mais la complexité de cette étude augmente très rapidement avec le nombre de neurones.
+
+Réseaux Elman et réseaux Jordan
+
+Le réseau Elman
+Un réseau Elman est un réseau de 3 couches (x, y, et z dans l'illustration) complété d'un ensemble d'unités de contexte (u dans l'illustration). La couche y du milieu (cachée) est connectée à ces unités de contexte, et a des poids2. A chaque étape, l'entrée est retransmise et une règle d'apprentissage est appliquée. Les connexions finales fixées enregistrent une copie des valeurs précédentes des unités cachées dans les unités de contexte (puisqu'elles propagent les connexions avant que la règle d'apprentissage soit appliquée). Donc le réseau peut maintenir une sorte d'état, lui permettant d'exécuter des tâches telles que la prédiction séquentielle qui est au-delà de la puissance d'un perceptron multicouche standard.
+
+Les réseaux Jordan sont similaires aux réseaux Elman. Les unités de contexte sont alimentées par la couche de sortie à la place de la couche cachée. Les unités de contexte dans un réseau Jordan mentionnent aussi la couche d'état. Elles ont une connexion récurrente à elles-mêmes2.
+
+Les réseaux Elman et Jordan sont aussi connus comme des simples réseaux récurrents (SRN pour simple recurrent networks). Voici les équations pour deux types de réseaux :
+
+
+Problème de disparition du gradient
+Les réseaux de neurones récurrents classiques sont exposés au problème de disparition de gradient qui les empêche de modifier leurs poids en fonction d'évènements trop anciens5. Lors de l'entraînement, le réseau essaie de minimiser une fonction d'erreur dépendant en particulier de la sortie 
+
