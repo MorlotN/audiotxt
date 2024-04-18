@@ -1,14 +1,28 @@
+# !pip install -U diffusers
+# !pip install -q -U bitsandbytes
+# !pip install -q -U git+https://github.com/huggingface/transformers.git
+# !pip install -q -U git+https://github.com/huggingface/peft.git
+# !pip install -q -U git+https://github.com/huggingface/accelerate.git
+# !pip install -q trl xformers wandb datasets einops sentencepiece
+
+# !pip install transformers datasets wandb
+
+
+##### !pip install git+https://github.com/your-username/peft.git  # En supposant que Peft est disponible via un dépôt Git.
+
+
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig,HfArgumentParser,TrainingArguments,pipeline, logging, TextStreamer
 from peft import LoraConfig, PeftModel, prepare_model_for_kbit_training, get_peft_model
 import os, torch, wandb, platform, warnings
 from datasets import load_dataset
 from trl import SFTTrainer
+# from transformers.generation.utils import top_k_top_p_filtering
 from huggingface_hub import notebook_login
 #Use a sharded model to fine-tune in the free version of Google Colab.
 base_model = "mistralai/Mistral-7B-v0.1" #bn22/Mistral-7B-Instruct-v0.1-sharded
 # dataset_name, new_model = "gathnex/Gath_baize", "gathnex/Gath_mistral_7b"
 new_model = "gathnex/Gath_mistral_7b"
-dataset_name = "gathnex/Gath_baize"
+# dataset_name = "gathnex/Gath_baize"
 
 # Loading a Gath_baize dataset
 dataset = load_dataset(dataset_name, split="train")
@@ -34,3 +48,114 @@ tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.add_eos_token = True
 tokenizer.add_bos_token, tokenizer.add_eos_token
+
+wandb.login(key = "d31205338f0ec6564e10e7548e0922f3d84fcca5")
+run = wandb.init(project='Fine tuning mistral 7B', job_type="training", anonymous="allow")
+
+model = prepare_model_for_kbit_training(model)
+peft_config = LoraConfig(
+        r=16,
+        lora_alpha=16,
+        lora_dropout=0.05,
+        bias="none",
+        task_type="CAUSAL_LM",
+        target_modules=["q_proj", "k_proj", "v_proj", "o_proj","gate_proj"]
+    )
+model = get_peft_model(model, peft_config)
+
+# Training Arguments
+# Hyperparameters should beadjusted based on the hardware you using
+training_arguments = TrainingArguments(
+    output_dir= "./results",
+    num_train_epochs= 1,
+    per_device_train_batch_size= 8,
+    gradient_accumulation_steps= 2,
+    optim = "paged_adamw_8bit",
+    save_steps= 5000,
+    logging_steps= 30,
+    learning_rate= 2e-4,
+    weight_decay= 0.001,
+    fp16= False,
+    bf16= False,
+    max_grad_norm= 0.3,
+    max_steps= -1,
+    warmup_ratio= 0.3,
+    group_by_length= True,
+    lr_scheduler_type= "constant",
+    report_to="wandb"
+)
+# Setting sft parameters
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=dataset,
+    peft_config=peft_config,
+    max_seq_length= None,
+    dataset_text_field="chat_sample",
+    tokenizer=tokenizer,
+    args=training_arguments,
+    packing= False,
+)
+
+
+trainer.train()
+# Save the fine-tuned model
+trainer.model.save_pretrained(new_model)
+wandb.finish()
+model.config.use_cache = True
+model.eval()
+
+
+def stream(user_prompt):
+    runtimeFlag = "cuda:0"
+    system_prompt = 'The conversation between Human and AI assisatance named Gathnex\n'
+    B_INST, E_INST = "[INST]", "[/INST]"
+
+    prompt = f"{system_prompt}{B_INST}{user_prompt.strip()}\n{E_INST}"
+
+    inputs = tokenizer([prompt], return_tensors="pt").to(runtimeFlag)
+
+    streamer = TextStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
+
+    _ = model.generate(**inputs, streamer=streamer, max_new_tokens=200)
+    
+    
+    
+    stream("Explain large language models")
+
+
+# Clear the memory footprint
+del model, trainer
+torch.cuda.empty_cache()
+
+# Reload the base model
+base_model_reload = AutoModelForCausalLM.from_pretrained(
+    base_model, low_cpu_mem_usage=True,
+    return_dict=True,torch_dtype=torch.bfloat16,
+    device_map= {"": 0})
+model = PeftModel.from_pretrained(base_model_reload, new_model)
+model = model.merge_and_unload()
+
+# Reload tokenizer
+tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
+tokenizer.pad_token = tokenizer.eos_token
+tokenizer.padding_side = "right"
+
+
+# #push the model to hub
+# !huggingface-cli login
+# model.push_to_hub(new_model, use_temp_dir=False)
+# tokenizer.push_to_hub(new_model, use_temp_dir=False)
+
+
+# from transformers import AutoModelForCausalLM, AutoTokenizer
+
+# model_id = "mistralai/Mixtral-8x7B-v0.1"
+# tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+# model = AutoModelForCausalLM.from_pretrained(model_id)
+
+# text = "Hello my name is"
+# inputs = tokenizer(text, return_tensors="pt")
+
+# outputs = model.generate(**inputs, max_new_tokens=20)
+# print(tokenizer.decode(outputs[0], skip_special_tokens=True))
