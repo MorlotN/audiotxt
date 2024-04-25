@@ -19,11 +19,11 @@ app = FastAPI()
 app.mount('/static', StaticFiles(directory='static'), name='static')
 template = Jinja2Templates(directory='templates')
 
-# Load the Peft model and tokenizer
-config = PeftConfig.from_pretrained("shivam9980/Mistral-fine-tune")
-base_model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1")
-model = PeftModel.from_pretrained(base_model, config)
-tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1")
+# # Load the Peft model and tokenizer
+# config = PeftConfig.from_pretrained("shivam9980/Mistral-fine-tune")
+# base_model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1")
+# model = PeftModel.from_pretrained(base_model, config)
+# tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1")
 
 # Load Whisper model for audio transcription
 whisper_model = stable_whisper.load_model("tiny")
