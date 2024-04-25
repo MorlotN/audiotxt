@@ -1,0 +1,44 @@
+[autoreload of huggingface_hub.hf_api failed: Traceback (most recent call last):
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 276, in check
+    superreload(m, reload, self.old_objects)
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 500, in superreload
+    update_generic(old_obj, new_obj)
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 397, in update_generic
+    update(a, b)
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 349, in update_class
+    if update_generic(old_obj, new_obj):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 397, in update_generic
+    update(a, b)
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 309, in update_function
+    setattr(old, name, getattr(new, name))
+ValueError: list_repo_files() requires a code object with 5 free vars, not 3
+]
+[autoreload of huggingface_hub.hf_file_system failed: Traceback (most recent call last):
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 276, in check
+    superreload(m, reload, self.old_objects)
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 500, in superreload
+    update_generic(old_obj, new_obj)
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 397, in update_generic
+    update(a, b)
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 349, in update_class
+    if update_generic(old_obj, new_obj):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 397, in update_generic
+    update(a, b)
+  File "/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/IPython/extensions/autoreload.py", line 309, in update_function
+    setattr(old, name, getattr(new, name))
+ValueError: info() requires a code object with 1 free vars, not 0
+]
+/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/trl/trainer/sft_trainer.py:246: UserWarning: You didn't pass a `max_seq_length` argument to the SFTTrainer, this will default to 1024
+  warnings.warn(
+
+
+
+
+
+
+Map: 100%|██████████| 210311/210311 [00:14<00:00, 14953.17 examples/s]
+/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/trl/trainer/sft_trainer.py:318: UserWarning: You passed a tokenizer with `padding_side` not equal to `right` to the SFTTrainer. This might lead to some unexpected behaviour due to overflow issues when training a model in half-precision. You might consider adding `tokenizer.padding_side = 'right'` to your code.
+  warnings.warn(
+/home/morlot/anaconda3/envs/deeplife/lib/python3.11/site-packages/torch/utils/checkpoint.py:460: UserWarning: torch.utils.checkpoint: please pass in use_reentrant=True or use_reentrant=False explicitly. The default value of use_reentrant will be updated to be False in the future. To maintain current behavior, pass use_reentrant=True. It is recommended that you use use_reentrant=False. Refer to docs for more details on the differences between the two variants.

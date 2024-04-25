@@ -1,77 +1,50 @@
-from datetime import timedelta
-from typing import Optional
-
-import numpy as np
-import ffmpeg
-import srt
-import uvicorn
-from fastapi import FastAPI, Request, File, Form, HTTPException
+from fastapi import FastAPI, Request, File, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel, PeftConfig
 import stable_whisper
+import ffmpeg
+import numpy as np
 
-# Initialize the FastAPI app
 app = FastAPI()
 app.mount('/static', StaticFiles(directory='static'), name='static')
 template = Jinja2Templates(directory='templates')
 
-# # Load the Peft model and tokenizer
-# config = PeftConfig.from_pretrained("shivam9980/Mistral-fine-tune")
-# base_model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1")
-# model = PeftModel.from_pretrained(base_model, config)
-# tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.1")
+local_model_path = '/home/morlot/code/audiotxt/your_model_dir'
+tokenizer = AutoTokenizer.from_pretrained(local_model_path)
+model = AutoModelForCausalLM.from_pretrained(local_model_path)
 
-# Load Whisper model for audio transcription
 whisper_model = stable_whisper.load_model("tiny")
-
-def get_audio_buffer(filename: str, start: int, length: int):
-    out, _ = ffmpeg.input(filename, threads=0).output("-", format="s16le", acodec="pcm_s16le", ac=1, ar=16000, ss=start, t=length).run(cmd=["ffmpeg", "-nostdin"], capture_stdout=True, capture_stderr=True)
-    return np.frombuffer(out, np.int16).flatten().astype(np.float32) / 32768.0
-
-def make_srt_subtitles(segments: list):
-    return srt.compose([srt.Subtitle(index=i, start=timedelta(seconds=seg.start), end=timedelta(seconds=seg.end), content=seg.text.strip()) for i, seg in enumerate(segments, start=1)])
-
-def transcribe_time_stamps(segments: list):
-    return "\n".join([f"{seg.start} -> {seg.end}: {seg.text.strip()}" for seg in segments])
-
-def summarize_text(text: str) -> str:
-    inputs = tokenizer.encode(text, return_tensors="pt")
-    outputs = model.generate(inputs, max_length=150)
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 @app.get('/', response_class=HTMLResponse)
 def index(request: Request):
     return template.TemplateResponse('index.html', {"request": request})
 
-@app.post('/download/')
-async def download_subtitle(request: Request, file: bytes = File(), model_type: str = "tiny", timestamps: Optional[str] = Form("False"), filename: str = "subtitles", file_type: str = "srt"):
-    with open('audio.mp3', 'wb') as f:
-        f.write(file)
+@app.post('/process_audio/')
+async def process_audio(request: Request, file: bytes = File(...)):
+    # Save the audio file
+    audio_filename = 'temp_audio.mp3'
+    with open(audio_filename, 'wb') as audio_file:
+        audio_file.write(file)
 
-    result = whisper_model.transcribe("audio.mp3", regroup=False)
-    subtitle_file = f"{filename}.{file_type}"
-    with open(subtitle_file, "w") as f:
-        if file_type == "srt":
-            f.write(make_srt_subtitles(result.segments) if timestamps == "True" else result.text)
-        elif file_type == "vtt":
-            f.write(result.to_vtt() if timestamps == "True" else result.text)
-        elif file_type == "txt":
-            f.write(transcribe_time_stamps(result.segments) if timestamps == "True" else result.text)
+    # Transcribe audio
+    transcription_result = whisper_model.transcribe(audio_filename, regroup=True)
+    transcription_text = "\n".join([seg['text'] for seg in transcription_result.segments])
 
-    return StreamingResponse(open(subtitle_file, 'rb'), media_type="application/octet-stream", headers={'Content-Disposition': f'attachment;filename={subtitle_file}'})
+    # Generate summary
+    inputs = tokenizer(transcription_text, return_tensors="pt")
+    outputs = model.generate(**inputs, max_new_tokens=150)
+    summary_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-@app.post('/summarize_text/')
-async def summarize_text_api(request: Request):
-    data = await request.json()
-    text = data.get('text', '')
-    if not text:
-        raise HTTPException(status_code=400, detail="No text provided for summarization.")
-    summary = summarize_text(text)
-    return {"summary": summary}
+    # Save summary to text file
+    summary_filename = 'summary.txt'
+    with open(summary_filename, 'w') as summary_file:
+        summary_file.write(summary_text)
+
+    return StreamingResponse(open(summary_filename, 'rb'), media_type='text/plain', headers={'Content-Disposition': f'attachment; filename={summary_filename}'})
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -3,17 +3,14 @@ form {
     text-align: center;
 }
 
-input, select, audio {
+input, audio {
     width: 25em; /* Uniform width for input and audio controls */
     margin: 2em 0;
 }
 
-#filename, #submit, #summarize {
+#submit {
     font-size: 1em;
     width: 20em; /* Slightly narrower controls for aesthetic spacing */
-}
-
-#submit, #summarize {
     border-radius: 3em; /* Rounded buttons for better aesthetics */
     height: 5em;
 }
@@ -28,7 +25,7 @@ p {
     height: 2rem;
 }
 
-#summaryContainer {
+#textSummaryResult {
     margin-top: 1em;
     font-size: 1.2em;
     color: #555; /* Muted text color for the summary output */

@@ -1,0 +1,128 @@
+{
+    "os": "Linux-6.5.0-27-generic-x86_64-with-glibc2.38",
+    "python": "3.11.5",
+    "heartbeatAt": "2024-04-18T17:14:10.006925",
+    "startedAt": "2024-04-18T17:14:09.561173",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/morlot/code/audiotxt/finetune.py",
+    "codePathLocal": "finetune.py",
+    "codePath": "finetune.py",
+    "git": {
+        "remote": "https://github.com/MorlotN/audiotxt.git",
+        "commit": "4f66dc5014e73b2fcd31f36b735aef03725d7fde"
+    },
+    "email": "nicolasmorlot@gmail.com",
+    "root": "/home/morlot/code/audiotxt",
+    "host": "morlot-System-Version",
+    "username": "morlot",
+    "executable": "/home/morlot/anaconda3/envs/deeplife/bin/python",
+    "cpu_count": 10,
+    "cpu_count_logical": 16,
+    "cpu_freq": {
+        "current": 2.6449374999999997,
+        "min": 800.0,
+        "max": 4275.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 4.27,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 4.109,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 4.287,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 4.472,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 4.11,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 0.8,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 4.119,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 0.8,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 4.243,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 0.8,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 4.111,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 4.121,
+            "min": 800.0,
+            "max": 4600.0
+        },
+        {
+            "current": 0.8,
+            "min": 800.0,
+            "max": 3300.0
+        },
+        {
+            "current": 0.8,
+            "min": 800.0,
+            "max": 3300.0
+        },
+        {
+            "current": 0.8,
+            "min": 800.0,
+            "max": 3300.0
+        },
+        {
+            "current": 0.8,
+            "min": 800.0,
+            "max": 3300.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 912.8097763061523,
+            "used": 257.38768768310547
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 4060 Ti",
+            "memory_total": 17175674880
+        }
+    ],
+    "memory": {
+        "total": 62.60349655151367
+    }
+}
