@@ -1,16 +1,18 @@
-from fastapi import FastAPI, Request, File, HTTPException
+from datetime import timedelta
+from fastapi import FastAPI, Request, File, HTTPException, UploadFile
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
-from transformers import AutoModelForCausalLM, AutoTokenizer
 import stable_whisper
+import srt
 import ffmpeg
 import numpy as np
 
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 app = FastAPI()
-app.mount('/static', StaticFiles(directory='static'), name='static')
-template = Jinja2Templates(directory='templates')
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 local_model_path = '/home/morlot/code/audiotxt/your_model_dir'
 tokenizer = AutoTokenizer.from_pretrained(local_model_path)
@@ -18,33 +20,34 @@ model = AutoModelForCausalLM.from_pretrained(local_model_path)
 
 whisper_model = stable_whisper.load_model("tiny")
 
-@app.get('/', response_class=HTMLResponse)
-def index(request: Request):
-    return template.TemplateResponse('index.html', {"request": request})
+@app.get("/", response_class=HTMLResponse)
+def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
-@app.post('/process_audio/')
-async def process_audio(request: Request, file: bytes = File(...)):
-    # Save the audio file
-    audio_filename = 'temp_audio.mp3'
-    with open(audio_filename, 'wb') as audio_file:
-        audio_file.write(file)
+@app.post("/process_audio/")
+async def process_audio(file: UploadFile = File(...)):
+    audio_data = await file.read()
+    audio_file_path = 'audio.mp3'
+    with open(audio_file_path, 'wb') as audio_file:
+        audio_file.write(audio_data)
 
-    # Transcribe audio
-    transcription_result = whisper_model.transcribe(audio_filename, regroup=True)
-    transcription_text = "\n".join([seg['text'] for seg in transcription_result.segments])
+    # Transcription
+    result = whisper_model.transcribe(audio_file_path, regroup=False)
+    transcribed_text = result.text
 
-    # Generate summary
-    inputs = tokenizer(transcription_text, return_tensors="pt")
-    outputs = model.generate(**inputs, max_new_tokens=150)
-    summary_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    # Summarization
+    inputs = tokenizer(transcribed_text, return_tensors="pt")
+    outputs = model.generate(**inputs, max_new_tokens=100)
+    summary = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
-    # Save summary to text file
-    summary_filename = 'summary.txt'
-    with open(summary_filename, 'w') as summary_file:
-        summary_file.write(summary_text)
+    # Save the summary to a .txt file
+    subtitle_file = "summary.txt"
+    with open(subtitle_file, "w") as f:
+        f.write(summary)
 
-    return StreamingResponse(open(summary_filename, 'rb'), media_type='text/plain', headers={'Content-Disposition': f'attachment; filename={summary_filename}'})
+    # Provide the summary for download
+    return StreamingResponse(open(subtitle_file, 'rb'), media_type="text/plain", headers={'Content-Disposition': 'attachment; filename="summary.txt"'})
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=8000)

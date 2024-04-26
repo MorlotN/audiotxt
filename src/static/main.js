@@ -1,32 +1,27 @@
-/* Player and recorder setup */
-const recorder = document.getElementById('recorder');
-const player = document.getElementById('player');
-const conversionForm = document.getElementById('conversion-form');
-const submitButton = document.getElementById('submit');
-const spinner = document.getElementById('spinner');
-const summaryContainer = document.getElementById('textSummaryResult');
+const fileInput = document.getElementById('file-input');
+const submitButton = document.getElementById('submit-button');
 
-recorder.addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    const url = URL.createObjectURL(file);
-    player.src = url;
-});
+submitButton.addEventListener('click', async () => {
+  submitButton.disabled = true;
+  const file = fileInput.files[0];
+  const formData = new FormData();
+  formData.append('file', file);
 
-/* Form submission and processing */
-conversionForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    submitButton.disabled = true;
-    spinner.classList.remove('d-none');
+  // Send the audio file to the server to process
+  const response = await fetch('/process_audio/', {
+    method: 'POST',
+    body: formData
+  });
 
-    const formData = new FormData(conversionForm);
-    const response = await fetch('/process_audio/', {
-        method: 'POST',
-        body: formData,
-    });
+  // Create a new Blob object for the summary text file returned from the server
+  const blob = await response.blob();
+  const downloadUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = downloadUrl;
+  a.download = 'summary.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 
-    const data = await response.json();
-    summaryContainer.innerHTML = `<p class="text-muted">Summary:</p><p>${data.summary}</p>`;
-
-    submitButton.disabled = false;
-    spinner.classList.add('d-none');
+  submitButton.disabled = false;
 });
